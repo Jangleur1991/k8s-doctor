@@ -1,33 +1,39 @@
 # Gradle Plugins
 
 ## What
-What is the concept? Two or three sentences.
-Plugins are used to extend the capabilities of gradle like
-using java or spring boot web.
+
+Plugins extend Gradle with capabilities. They add build tasks, default configurations,
+and dependency version management.
 
 ## Why
-What problem does it solve?
-It makes it possible to use java in the first place with gradle.
-In addition it can be used to add functionality similiar to
-the parent pom of spring boot web in maven which entiles
-vesions and certain dependencies. But in contrast to maven
-there is no one parent pom but to plugins to achieve this!
+
+Maven has the `pom.xml` with built-in support for Java builds and a parent POM that
+provides default settings and version management. Gradle needs explicit plugins for
+the same. The `plugins` block in `build.gradle` replaces Maven's parent POM and
+adds the required functionality.
 
 ## Example
-A practical example, preferably from this repository. Reference real paths.
 
+```
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '4.1.2'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'org.springframework.boot' version '4.1.2'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
+```
 
-Here without the first plugin 'java' we wouldn't be able to use
-java with gradle. The second one adds versions and the third one dependencies.
+- `java` — enables Java compilation and testing (Maven has this built-in, Gradle needs the plugin).
+- `org.springframework.boot` — configures how Spring Boot JARs are built.
+- `io.spring.dependency-management` — manages dependency versions. Spring Boot provides
+  the correct versions automatically, so you do not need to specify them in each dependency.
 
 ## Gotchas
-- 
+
+- `dependency-management` only handles **versions**, not adding dependencies.
+  Dependencies still need to be listed in the `dependencies` block.
+- The `java` plugin is separate from Spring Boot. Without it, Gradle cannot compile Java.
+- Plugins are versioned. A plugin update may change default behaviour.
 
 ## Used in
-- /backend/build.gradle
 
+- `backend/build.gradle` — plugin declarations

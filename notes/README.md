@@ -19,7 +19,9 @@ Flat files, named by concept: `<domain>-<concept>.md`, e.g. `kubernetes-probes.m
 
 ## Index
 
-*No notes yet.*
+- `gradle-files.md` — Gradle file structure and comparison to Maven
+- `gradle-toolchain.md` — JDK toolchain configuration and why two JDKs exist
+- `gradle-plugins.md` — Gradle plugins replacing Maven's parent POM
 
 ## Template
 

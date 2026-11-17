@@ -16,7 +16,7 @@ Only verified progress is recorded here. Planned work is not marked as done. Fra
 
 ## Current task
 
-None in the application. Framework initialisation is complete pending the developer's review.
+None in the application. Framework consolidation complete (CLAUDE.md → AGENTS.md, guideme note consolidated).
 
 ## Next steps
 
@@ -35,10 +35,9 @@ Whether to follow the mini project is still open (see below).
 - Learning project: developer writes application code (preferred Mode A/B, see `GUIDE.md`).
 - Local-only infrastructure: Docker Desktop cluster, Ollama and ChromaDB as in-cluster pods, no cloud LLM.
 - Framework documents in English; project and personal documents in German.
+- Mini project step 1 uses Mode A (Independent Implementation).
+- AGENTS.md is the hub; CLAUDE.md points to it and contains no content of its own.
 
 ## Open questions
 
-- Which working mode to use for mini project step 1 (Mode A, B or C)?
-- `AI_DEV_FRAMEWORK_README.md` now overlaps with the README framework section. Keep both, or remove one? (Developer decides; nothing deleted.)
-- Are `CLAUDE.md` and `AGENTS.md` adapters wanted? They were created because `.claude/` and `.pi/` are present.
-- Should `.scratch/` also be git-ignored by a more general pattern for other tooling? Current rule: `.scratch/` only.
+- Should `.scratch/` also be git-ignored by a more general pattern for other tooling? Current rule: `.scratch/` only. It should be git-ignored in general.

@@ -1,205 +1,485 @@
 # k8s-doctor — Research Report
 
-**Date:** 2026-11-16
-**Scope:** Full folder inspection, all tracked files, git history, framework docs, project spec
+**Date:** 2026-11-17
+**Scope:** Full folder inspection — all tracked files, git history, framework documentation, project specification, and structural analysis
 
 ---
 
-## 1. What this project is
+## 1. What This Project Is
 
-`k8s-doctor` is a **learning project** — not a commercial product, not a finished tool. Its purpose is threefold:
+`k8s-doctor` is a **deliberate learning project**, not a commercial product or a finished CLI tool. It sits at the intersection of three learning goals:
 
-1. **CKAD exam prep** — every feature forces hands-on Kubernetes. No memorization, only building.
-2. **Java re-entry** — Spring Boot backend, Fabric8 client, Spring AI.
-3. **Modern AI architecture** — RAG, MCP, Agent Loop, all running fully local (no cloud LLM, no API keys).
+1. **CKAD certification prep through building** — every feature forces hands-on Kubernetes. There is no memorization without implementation.
+2. **Java re-entry** — Spring Boot backend with Fabric8 Kubernetes Client, targeting Java 25.
+3. **Modern AI architecture** — RAG, MCP, and a custom Agent Loop, all running **fully local** (Docker Desktop, Ollama, ChromaDB as in-cluster pods — no cloud LLM, no API keys).
 
-It sits on Docker Desktop (3 nodes, WSL2 backend). All inference and vector storage happen as in-cluster pods.
-
----
-
-## 2. Current state: empty repo with a blueprint
-
-**No application code exists.** Zero Java, zero TypeScript, zero manifests. The repo is 100% scaffolding: framework documents, templates, and a detailed German-language spec (`brainstorm-001.md`).
-
-Git log: 4 commits on `main`, pushed to `origin` (`github.com/Jangleur1991/k8s-doctor.git`).
-
-```
-107f4f2 ai dev framework init added
-8ec001c ai dev framework prompt and readme added
-ebc06e7 init
-7a83cba Initial commit
-```
-
-Untracked: `.gitignore`, `.idea/`. No branches besides `main`.
+The project is structured as a **split architecture**: a TypeScript CLI (local) speaks HTTP to a Java Spring Boot backend (running in-cluster). The backend does the heavy lifting: K8s API interaction via Fabric8, LLM inference via Spring AI → Ollama, RAG via Spring AI → ChromaDB, and an MCP server exposing tools.
 
 ---
 
-## 3. Architecture (planned, not built)
+## 2. Current State: Scaffolding + Blueprint
+
+### 2.1 Application Status
+
+**The application itself is still at the planning stage.** The `backend/` directory contains a minimal Spring Boot 4.1.2 skeleton (Java 25, `gradle/wrapper/gradle-wrapper.jar` at Gradle 9.9.1) with:
+
+- A single `@SpringBootApplication` class with a `main` method and nothing else.
+- Empty test class (`contextLoads()` — JUnit 5, Spring Boot Test).
+- `application.properties` with only `spring.application.name=k8sdoctor`.
+- Dependencies declared but not yet extended: currently just `spring-boot-starter-actuator` and `spring-boot-starter-webmvc` (no Fabric8, no Spring AI).
+
+No TypeScript CLI code exists. No Kubernetes manifests exist. No Dockerfile exists. Nothing in `k8s/`.
+
+### 2.2 Git History
+
+5 commits on `main`, pushed to `origin` (`github.com/Jangleur1991/k8s-doctor.git`):
+
+| Commit | Message |
+|---|---|
+| `25f38e5` | init backend, gradle notes added |
+| `364b515` | research.md added |
+| `107f4f2` | ai dev framework init added |
+| `8ec001c` | ai dev framework prompt and readme added |
+| `ebc06e7` | init |
+| `7a83cba` | Initial commit |
+
+The working tree is currently dirty: a vim swap file `backend/.build.gradle.swp` has been deleted and `research.md` (an earlier version) has been deleted (the file we are now creating replaces it). Untracked files: `.gitignore` (AI framework scratch rule), `.idea/` (IntelliJ project files).
+
+### 2.3 Working Branch
+
+No branches other than `main`. The project is early-stage; no feature branches yet.
+
+---
+
+## 3. The AI Development Framework — A Meta-Layer
+
+The most unusual and intentional aspect of this project is the **AI Development Framework** — a sophisticated, self-improving layer of process documentation that sits on top of the application code and governs how AI agents and the developer collaborate.
+
+### 3.1 Architecture of the Framework
+
+The framework uses a **hub-and-spoke model** with `AI.md` as the universal, agent-independent entry point. Every AI agent reads it first:
 
 ```
-[TypeScript CLI]  --HTTP (port-forward)-->  [Java Spring Boot Backend]  (Namespace: k8s-doctor)
-   lokal                                        |-- Fabric8 → K8s-API (via ServiceAccount + RBAC)
-                                                |-- Spring AI → Ollama-Pod (LLM)
-                                                |-- Spring AI → ChromaDB-Pod (RAG)
-                                                '-- MCP-Server (Tools: logs, events, patch)
+AI.md (universal entry point)
+  ├── GUIDE.md (collaboration & learning protocol)
+  ├── AI_RULES.md (AI behaviour rules — developer-approved only)
+  ├── RULES.md (project quality rules — technology-agnostic)
+  ├── TREE.md (repository map)
+  └── PROGRESS.md (verified project state)
 ```
 
-| Component | Tech | Where | Purpose |
+Additional documents feed in on demand: `notes/`, `patterns/`, `docs/decisions/`.
+
+### 3.2 Three Separate Concerns — Enforced Separation
+
+The framework enforces strict separation of three concerns:
+
+| Concern | Document | Owner |
+|---|---|---|
+| Improving AI behaviour | `AI_RULES.md` | Developer (AI proposes only) |
+| Helping developer learn | `GUIDE.md` + `notes/` | Developer |
+| Maintaining project quality | `RULES.md` | Developer |
+
+This is a deliberate design to prevent the common AI mistake of conflating "how I should behave" with "what the project requires."
+
+### 3.3 Three Working Modes
+
+The developer picks a mode per task:
+
+| Mode | AI Role | Developer Role | When |
 |---|---|---|---|
-| CLI | TypeScript (strict) | Local machine, `tsx` or compiled | Terminal frontend: `diagnose`, `create`, `explain`, `agent start` |
-| Backend | Java 25 + Spring Boot | In-cluster Deployment | Diagnose engine, agent loop, AI client, MCP server |
-| K8s client | Fabric8 | Backend | Pods, events, logs, patches via Java |
-| LLM | Ollama | In-cluster pod | Local inference. Model cached on PVC. |
-| Vector store | ChromaDB | In-cluster StatefulSet + PVC | RAG over Kubernetes documentation |
-| Agent loop | Custom | Backend | Watch → AI → Tools → Plan → User-OK → Apply → Verify |
+| **A — Independent** | Optional reference in `.scratch/drafts/`, comparison after | Writes production code first | Learning preferred |
+| **B — Guided** | Investigates real code, produces implementation guide, explains context | Writes the code | Understanding existing codebase |
+| **C — AI-assisted** | Implements, verifies, explains decisions | Reviews and accepts | Explicit request |
 
----
+The developer can switch modes at any time. Mode A is the preferred default for learning.
 
-## 4. Mini-project roadmap (steps 0–4)
+### 3.4 AI Mistake Learning Loop
 
-The spec defines a concrete entry path (~30–60 min) that builds the foundation without AI:
+When the AI makes a mistake, a structured 7-step process triggers:
 
-| Step | What | CKAD topic |
+1. Describe the actual mistake
+2. Determine its cause (missing context, unclear instructions, incorrect assumption, ignored constraint, etc.)
+3. Propose a preventive rule
+4. Decide whether automated detection is possible
+5. Ask the developer to approve the proposal
+6. Only after approval, add the rule
+7. Add automated checks only when authorised and technically appropriate
+
+**Key constraint:** No AI agent may autonomously modify `AI_RULES.md`. The developer approves every rule. The rule registry in `AI_RULES.md` is currently **empty** — no mistakes have been observed yet (project is pre-code).
+
+### 3.5 Rule Formats
+
+**AI Rules** (`AI_RULES.md`):
+```
+### AIR-NNN — Name
+- Observed problem:
+- Required behaviour:
+- Prevention:
+- Detection: (method, or "none yet")
+- Status: proposed | approved | retired
+- Approved by / date:
+```
+
+**Project Rules** (`RULES.md`):
+```
+### RUL-NNN — Name  [enforceable | guideline | preference]
+- What must be true:
+- Why it matters:
+- Detection method:
+- Check location: (file/command, or "none yet")
+- Status: proposed | active | retired
+```
+
+Both registries are empty. The framework explicitly says: "Do not invent technology-specific rules ahead of the code."
+
+### 3.6 Agent-Specific Thin Adapters
+
+Agent-specific files exist only where the environment requires them:
+
+| File | Purpose | Contains |
 |---|---|---|
-| 0 | Create broken pod (`ImagePullBackOff`) in `playground` namespace | Troubleshooting |
-| 1 | `GET /diagnose/{namespace}` — Spring Boot + Fabric8, JSON output | K8s API |
-| 2 | `@Scheduled` watcher with deduplicated logging | Scheduling, state |
-| 3 | Kubernetes manifests: namespace, RBAC, deployment, service | Deployment, RBAC, probes |
-| 4 | `port-forward` + `curl` verification | Networking |
+| `CLAUDE.md` | Claude Code adapter | One pointer to `AI.md` + one note about the `guideme` skill |
+| `AGENTS.md` | Generic agent adapter | One pointer to `AI.md` + "Do not add rules here" |
 
-After mini-project: V1 (KI-Diagnose + CLI), V2 (RAG + MCP), V3 (Agent-Loop + Drill-Modus).
+Both are explicitly documented as "thin adapters." The framework philosophy: `AI.md` is the source of truth. Don't copy rules into agent-specific files.
+
+### 3.7 The `guideme` Skill
+
+A specialized skill is present for two agents:
+
+- `.claude/skills/guideme/SKILL.md` (Claude Code)
+- `.pi/agent/skills/guideme/SKILL.md` (Pi agent)
+
+Both files are **identical**. The `guideme` skill produces **implementation guides, not implementations**. It treats the developer as a senior engineer being onboarded to the codebase. Key rules:
+
+- Must NOT create, edit, or write production code, config, or tests.
+- Must read the actual codebase before writing the guide — never guess.
+- The reader is a senior engineer — no explaining language syntax or basics.
+- Points to specific anchors: `path/to/file.ext → functionOrBlock` (line ranges if stable).
+- When something is ambiguous, surfaces it as a decision for the human.
+
+The skill follows a 6-step checklist: restate request, map codebase slice, trace end-to-end, draft guide steps, define verification, list open decisions.
 
 ---
 
-## 5. CKAD domain coverage plan
+## 4. Documentation Files — Purpose and Cross-References
 
-Every official CKAD domain maps to a concrete feature:
+### 4.1 Project-Specification Files (German)
 
-| Domain | Weight | Feature that covers it |
+| File | Purpose | Status |
 |---|---|---|
-| Application Design and Build | 20% | Dockerfile (multi-stage), Workload types (Deployment/StatefulSet/CronJob/DaemonSet), Init containers, Volumes (PVC/emptyDir) |
-| Application Deployment | 20% | Rolling updates, Blue/Green, Canary, Kustomize, Helm |
-| Observability and Maintenance | 15% | Liveness/Readiness/Startup probes, `kubectl logs/describe/debug`, API deprecation checks |
-| Environment, Configuration and Security | 25% | ConfigMaps, Secrets, ServiceAccount, RBAC, SecurityContext, ResourceQuota, LimitRange |
-| Services and Networking | 20% | ClusterIP (internal DNS), NetworkPolicy, Ingress, NodePort |
+| `brainstorm-001.md` | **Master project specification** — tech stack, architecture, mini-project roadmap, CKAD coverage plan, V1→V3 evolution, bonus features | Authoritative spec |
+| `AI_DEV_FRAMEWORK_README.md` | Earlier German quick-start for the framework | **Overlaps** with README framework section — open question in PROGRESS.md |
 
-Bonus: `k8s-doctor drill` — backend generates random broken pods; human fixes them on time; AI explains the solution.
+### 4.2 Framework Files (English)
 
----
+| File | Purpose | Length (approx.) |
+|---|---|---|
+| `AI.md` | Universal entry point — "read these files, in this order" | 2484 bytes |
+| `GUIDE.md` | Collaboration protocol, working modes, learning as side effect, pattern learning, ADR process | 3901 bytes |
+| `AI_RULES.md` | AI behaviour rules — mistake learning loop, rule format, empty registry | 1585 bytes |
+| `RULES.md` | Project quality rules — enforceable/guideline/preference categories, empty registry | 923 bytes |
+| `TREE.md` | Repository map — what's where, what's tracked, conventions | 2835 bytes |
+| `PROGRESS.md` | Verified progress only — no planned work marked done, current task, open questions | 2110 bytes |
+| `README.md` | Hybrid: project TODO list + short framework section | 1024 bytes |
 
-## 6. AI Development Framework
-
-This repo is the testbed for a **technology-agnostic, agent-independent AI collaboration framework**. Key documents:
+### 4.3 Prompt & Reference
 
 | File | Purpose |
 |---|---|
-| `AI.md` | Universal entry point. Tells every AI agent which docs to read and when. Three concerns separated: AI learning, developer learning, project quality. |
-| `GUIDE.md` | Collaboration protocol. Three working modes: A (independent), B (guided), C (AI-assisted). Learning as side effect. Architecture learning. Pattern learning. Communication rules. |
-| `AI_RULES.md` | AI behaviour rules. Mistake → cause → prevention → detection → developer approval cycle. Empty rule registry so far. AI can never modify this file itself. |
-| `RULES.md` | Project quality rules (enforceable/guideline/preference). Separate from AI behaviour. Also empty — rules added only after grounded in real code. |
-| `TREE.md` | Repository map. Documents what exists, what doesn't yet. Distinguishes app code, tests, config, docs, framework files, scratch space, learning resources. |
-| `PROGRESS.md` | Verified progress only. Current phase: Planning. No app code. Open question: which working mode for step 1? |
-| `README.md` | Developer-facing quick start (German/English mix). |
-| `AI_DEV_FRAMEWORK_README.md` | German quick-start version. Overlaps with README. Open: keep both or remove one. |
-| `ai_dev_framework_prompt.md` | The original prompt that generated the framework. Reference only. 642 lines, very detailed. |
+| `ai_dev_framework_prompt.md` | The exact prompt that generated the framework — included as reference for reproducing or understanding the original design intent |
 
-**Working modes:**
+### 4.4 Template System
 
-- **Mode A (Independent):** Developer codes first, AI creates optional reference in `.scratch/drafts/`, then both are compared and differences classified.
-- **Mode B (Guided):** AI maps codebase, produces implementation guide. Developer writes the code. This is where the `guideme` skill applies.
-- **Mode C (AI-assisted):** AI implements. Developer reviews and accepts.
+Three template ecosystems, all technology-agnostic and empty of content:
 
-**The `guideme` skill:** Present in both `.claude/skills/guideme/` and `.pi/agent/skills/guideme/`. Takes a request, maps the codebase slice, traces end-to-end impact, produces a step-by-step guide. Hard rule: does NOT create or edit production code. Reader is a senior engineer — no basic tutorials.
+- **Notes** (`notes/README.md`, `notes/TEMPLATE.md`): Practical knowledge captured during development. Fields: What, Why, Example, Gotchas, Used in.
+- **Patterns** (`patterns/README.md`, `patterns/TEMPLATE.md`): Active pattern practice separate from production code. Fields: Problem solved, Canonical structure, Variations, Language comparison, Trade-offs, Failure cases, When not to use, Used in.
+- **ADR** (`docs/decisions/TEMPLATE.md`): Lightweight Architecture Decision Records. Fields: Context, Decision, Alternatives considered, Consequences. Status: proposed/accepted/superseded.
 
-**Thin adapters:** `CLAUDE.md` and `AGENTS.md` both just say "read AI.md first, then GUIDE.md and AI_RULES.md." No duplicate rules.
+### 4.5 Existing Notes (3 files)
+
+Three notes already written — all about **Gradle**, suggesting the developer went through a learning session on Java build tooling:
+
+1. `gradle-files.md` — Gradle folder structure, the three essential files (settings.gradle, build.gradle, gradlew)
+2. `gradle-plugins.md` — How plugins extend Gradle (java, spring-boot, dependency-management), contrast with Maven parent POM
+3. `gradle-toolchain.md` — How toolchain configuration lets Gradle use a different JDK version than the build JDK
+
+All three follow the TEMPLATE.md format (though with placeholder text still in the What/Why/Example sections). Notably:
+
+- The notes were written in **German** by the developer — the only content in the repo written in German outside the project spec.
+- They contain actual implementation references (e.g., `backend/build.gradle`).
+- The "Gotchas" section is empty in all three, showing the template is being actively used and may get filled as learning deepens.
 
 ---
 
-## 7. File system structure
+## 5. Backend Codebase — Current State
+
+### 5.1 Build System
+
+- **Gradle 9.9.1** (via wrapper — `gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`)
+- Spring Boot 4.1.2 (very new — this is a cutting-edge version)
+- Java 25 toolchain (latest Java — also cutting-edge)
+- Group: `com.example`, project name: `k8sdoctor`, version: `0.0.1-SNAPSHOT`
+- `settings.gradle`: simple single-project definition
+
+### 5.2 Dependencies (Declared, Not Used Yet)
+
+Only Spring Boot starters — no Kubernetes client, no AI libraries:
+
+| Dependency | Purpose |
+|---|---|
+| `spring-boot-starter-actuator` | Health endpoints (`/actuator/health/...`) for liveness/readiness probes |
+| `spring-boot-starter-webmvc` | REST endpoints |
+
+**Missing but needed per spec** (not yet added):
+- `io.fabric8:kubernetes-client` — K8s API access
+- Spring AI dependencies — Ollama integration, RAG, MCP
+- Spring AI starters — Vector store, ChatClient, @Tool annotations
+
+### 5.3 Application Code
+
+**Zero application logic.** The `K8sdoctorApplication.java` is a pure scaffold — just `@SpringBootApplication` and `main()`. Same for tests: one `contextLoads()` test.
+
+This is consistent with the project being in "Planning" phase per `PROGRESS.md`.
+
+### 5.4 Configuration
+
+`application.properties` has only:
+```properties
+spring.application.name=k8sdoctor
+```
+Nothing for K8s config resolution, actuator endpoints, or any other configuration.
+
+---
+
+## 6. The Project Specification (`brainstorm-001.md`)
+
+This is the most detailed file in the project — a thorough, well-structured spec written in German.
+
+### 6.1 Tech Stack
+
+| Component | Technology | Role |
+|---|---|---|
+| Backend | Java 25 + Spring Boot | Diagnose engine, Agent Loop, KI-Client, MCP-Server (~60% of work) |
+| K8s Client | Fabric8 | Pods, Events, Logs, Patches via Java |
+| AI Framework | Spring AI | ChatClient → Ollama, VectorStore for RAG, @Tool annotations, MCP server starter |
+| CLI | TypeScript (strict: true) | Terminal frontend, `tsx` or compiled |
+| LLM | Ollama | Local LLM as in-cluster pod |
+| Vector DB | ChromaDB | RAG over K8s docs |
+| Infra | Docker Desktop | 3-node WSL2 cluster |
+
+### 6.2 Four CLI Command Groups
+
+| Command | Function |
+|---|---|
+| `k8s-doctor diagnose [deploy]` | Collects pod status, events, logs → AI explains cause + suggests fix |
+| `k8s-doctor create <resource>` | AI generates valid YAML (RAG over K8s docs) → developer reviews → apply |
+| `k8s-doctor explain <thema>` | AI explains K8s concept with example from current cluster |
+| `k8s-doctor agent start` | Agent Loop monitors cluster, reports problems, suggests fixes (apply only with user OK) |
+
+### 6.3 Mini-Project Roadmap (Steps 0–4)
+
+A concrete entry path (~30–60 minutes) to validate the foundation without any AI:
+
+| Step | What | CKAD Topic |
+|---|---|---|
+| 0 | Create broken pod (`ImagePullBackOff`) in `playground` namespace | Troubleshooting |
+| 1 | `GET /diagnose/{namespace}` — Spring Boot + Fabric8, returns JSON | K8s API |
+| 2 | `@Scheduled` watcher with deduplicated logging | Scheduling, state management |
+| 3 | K8s manifests: namespace, RBAC, deployment, service | Deployment, RBAC, probes |
+| 4 | `port-forward` + `curl` verification | Networking |
+
+After mini-project: rolling upgrades to V1 (KI-Diagnose + CLI), V2 (RAG + MCP), V3 (Agent-Loop + Drill-Modus).
+
+### 6.4 CKAD Domain Coverage
+
+Every official CKAD domain maps to a concrete implementation:
+
+| Domain | Weight | Feature |
+|---|---|---|
+| Application Design and Build | 20% | Dockerfile (multi-stage), Workload types, Init containers, Volumes |
+| Application Deployment | 20% | Rolling updates, Blue/Green, Canary, Kustomize, Helm |
+| Observability and Maintenance | 15% | Probes, logs/describe/debug, API deprecation checks |
+| Environment, Configuration and Security | 25% | ConfigMaps, Secrets, ServiceAccount, RBAC, SecurityContext, ResourceQuota, LimitRange |
+| Services and Networking | 20% | ClusterIP DNS, NetworkPolicy, Ingress, NodePort |
+
+**Bonus feature:** `k8s-doctor drill` — backend generates random broken pods (wrong image, wrong probe port, missing secret, insufficient memory, blocking NetworkPolicy); developer fixes them on time; AI explains the solution afterward. Like killer.sh but in your own cluster.
+
+---
+
+## 7. Directory Structure
 
 ```
-.
-├── AI.md                     # Universal AI entry point
-├── AGENTS.md                 # Thin adapter → AI.md
-├── AI_DEV_FRAMEWORK_README.md # German quick-start (overlaps README)
-├── AI_RULES.md               # AI behaviour rules (empty registry)
-├── CLAUDE.md                 # Claude adapter → AI.md
-├── GUIDE.md                  # Collaboration protocol, 3 modes
-├── PROGRESS.md               # Verified progress (planning phase)
-├── README.md                 # Project TODO + framework section
-├── RULES.md                  # Project quality rules (empty registry)
-├── TREE.md                   # Repository map
-├── ai_dev_framework_prompt.md # Original framework prompt (642 lines)
-├── brainstorm-001.md         # German project spec + roadmap
-├── research.md               # (deleted/not present — referenced in TREE.md)
-├── .gitignore                # Only .scratch/
-├── .idea/                    # IntelliJ (untracked)
-├── .claude/
-│   ├── skills/
-│   │   └── guideme/SKILL.md  # guideme skill for Claude Code
-│   └── .cc-writes/           # Empty
-├── .pi/
-│   └── agent/skills/
-│       └── guideme/SKILL.md  # Same skill for Pi agent
-├── .scratch/                 # Git-ignored
-│   ├── drafts/               # AI reference implementations (empty)
-│   └── reviews/              # AI review artifacts (empty)
-├── notes/
-│   ├── README.md             # When/how to create notes
-│   └── TEMPLATE.md           # What/Why/Example/Gotchas/Used in
-├── patterns/
-│   ├── README.md             # Active practice, not passive reading
-│   └── TEMPLATE.md           # Problem/Canonical/Variations/Language/Trade-offs/Failure/When not/Used in
-└── docs/
-    └── decisions/
-        └── TEMPLATE.md       # ADR format: Context/Decision/Alternatives/Consequences
+k8s-doctor/
+├── .claude/                          # Agent config (untracked)
+│   └── skills/guideme/SKILL.md       # Implementation guide skill
+├── .git/                             # Version control
+├── .idea/                            # IntelliJ IDEA (untracked)
+├── .pi/                              # Pi agent config
+│   └── agent/skills/guideme/SKILL.md # Same skill for Pi
+├── .scratch/                         # AI drafts & reviews (git-ignored)
+│   ├── drafts/                       # Empty — reference implementations
+│   └── reviews/                      # Empty — AI review artifacts
+├── docs/
+│   └── decisions/
+│       └── TEMPLATE.md               # ADR template
+├── backend/                          # Spring Boot skeleton (no app logic yet)
+│   ├── .gitattributes
+│   ├── .gitignore
+│   ├── .gradle/                      # Gradle cache (build artifacts)
+│   ├── HELP.md
+│   ├── build.gradle                  # Spring Boot 4.1.2, Java 25, Gradle 9.9.1
+│   ├── gradlew / gradlew.bat         # Gradle wrapper
+│   ├── gradle/wrapper/
+│   │   ├── gradle-wrapper.jar
+│   │   └── gradle-wrapper.properties
+│   ├── settings.gradle               # project name: k8sdoctor
+│   └── src/
+│       ├── main/
+│       │   ├── java/com/example/k8sdoctor/
+│       │   │   └── K8sdoctorApplication.java  # Empty scaffold
+│       │   └── resources/
+│       │       └── application.properties     # spring.application.name only
+│       └── test/java/com/example/k8sdoctor/
+│           └── K8sdoctorApplicationTests.java # contextLoads()
+├── notes/                            # Developer learning notes
+│   ├── README.md                     # When/why/how to write notes
+│   ├── TEMPLATE.md                   # Note template
+│   ├── gradle-files.md               # Gradle file structure (German)
+│   ├── gradle-plugins.md             # Gradle plugins (German)
+│   └── gradle-toolchain.md           # Gradle toolchain (German)
+├── patterns/                         # Pattern practice material
+│   ├── README.md                     # How to learn patterns actively
+│   └── TEMPLATE.md                   # Pattern template
+├── AGENTS.md                         # Thin adapter → AI.md
+├── AI.md                             # Universal AI entry point
+├── AI_DEV_FRAMEWORK_README.md        # German framework quick-start (overlaps)
+├── AI_RULES.md                       # AI behaviour rules (empty registry)
+├── CLAUDE.md                         # Thin adapter → AI.md
+├── GUIDE.md                          # Collaboration protocol
+├── PROGRESS.md                       # Project progress (Planning phase)
+├── README.md                         # Hybrid: TODO + framework section
+├── RULES.md                          # Project quality rules (empty registry)
+├── TREE.md                           # Repository map
+├── ai_dev_framework_prompt.md        # Original framework generation prompt
+├── brainstorm-001.md                 # Master project specification (German)
+├── research.md                       # THIS file (new research report)
+└── .gitignore                        # .scratch/ rule only
 ```
 
-Conventions:
-- Framework docs in English (all agents can read them).
-- Project/personal docs in German.
-- `.scratch/` is the only git-ignored directory.
-- No forced `src/` or `tests/` directories — structure follows the actual project when code appears.
-- Templates are all technology-agnostic.
+---
+
+## 8. Key Observations and Design Decisions
+
+### 8.1 Intentional Deliberateness
+
+This project is **highly intentional** about its own process. The AI Development Framework is not boilerplate — it reflects a mature understanding of how AI agents fail and how to build guardrails. Key signals:
+
+- **Empty rule registries everywhere** — the framework explicitly says "do not invent rules ahead of code." This is a guardrail against over-engineering process before understanding the code.
+- **Separation of concerns enforced at the document level** — AI behaviour rules vs. project quality rules vs. learning protocol are three separate files with separate audiences.
+- **Agent independence** — `AI.md` does not assume Claude, VS Code, or any provider. The thin adapter pattern (`CLAUDE.md`, `AGENTS.md`) is a clean way to support multiple agents without duplication.
+- **Developer in the loop** — the preferred mode (A) requires the developer to write code first, then optionally compare with an AI draft. This prevents AI from becoming a crutch.
+
+### 8.2 Language Strategy
+
+The project documents live in **two languages**:
+
+- **English** for framework files (`AI.md`, `GUIDE.md`, `AI_RULES.md`, `RULES.md`, `TREE.md`, `PROGRESS.md`, templates) — so every AI agent, regardless of locale, can read them.
+- **German** for project content (`README.md`, `brainstorm-001.md`, `AI_DEV_FRAMEWORK_README.md`, and all developer-written notes) — because the developer's thinking language is German.
+
+This bilingual split is a deliberate design documented in `TREE.md` under "Conventions."
+
+### 8.3 The Learning-Centric Architecture
+
+The framework treats learning as a first-class concern:
+
+- **Learning as a side effect** (GUIDE.md §5.2): knowledge captured during work, not retrofitted.
+- **Pattern practice** (GUIDE.md §5.4): explicitly separated from production code — practicing a pattern never auto-introduces it into the application.
+- **Architecture learning** (GUIDE.md §5.3): compare alternatives with fixed requirements, explaining trade-offs and failure modes.
+
+### 8.4 Infrastructure Constraints
+
+- **Local-only** — Docker Desktop cluster, Ollama pod, ChromaDB pod. No cloud LLM, no API keys.
+- **3 nodes** on Docker Desktop (WSL2 backend).
+- **No Kubernetes manifests yet** — the spec says "self-write (Doku erlaubt, nicht kopieren)" — documentation is allowed for reference, but code must be written by hand for learning value.
+
+### 8.5 The Spec's Sophistication
+
+`brainstorm-001.md` is not a throwaway idea document. It's a thorough specification that:
+
+- Maps every CKAD domain to a concrete implementation task.
+- Defines a realistic mini-project (~30-60 min) to validate the foundation.
+- Plans a V1→V3 evolution path.
+- Includes a bonus "drill mode" concept.
+- Addresses networking (ClusterIP DNS, NetworkPolicy, Ingress), security (RBAC, SecurityContext), observability (probes, logs, debug), and deployment (rolling updates, blue/green, Kustomize, Helm).
+
+### 8.6 What's Not There (Yet)
+
+- No actual Kubernetes manifests (`k8s/` directory doesn't exist)
+- No Dockerfile
+- No TypeScript project
+- No application logic beyond the Spring Boot scaffold
+- No CI/CD pipeline
+- No tests (beyond `contextLoads()`)
+- No actual dependencies for K8s client or Spring AI
+- No ADRs recorded
+- No patterns practiced
+- No rules in AI_RULES.md or RULES.md registries
+
+This is consistent with being in "Planning" phase. The framework is ready; the code is not.
 
 ---
 
-## 8. Specificities and observations
+## 9. Open Questions (From PROGRESS.md)
 
-### 8.1 Research file missing
-`TREE.md` references `research.md` as "Earlier research report on the project." It does not exist on disk. Either it was deleted after writing, or TREE.md is stale.
+Three open questions are explicitly tracked:
 
-### 8.2 `AI_DEV_FRAMEWORK_README.md` overlap
-The German quick-start overlaps significantly with the framework section of `README.md`. PROGRESS.md lists this as an open question: keep both or remove one. Neither is deleted.
-
-### 8.3 Working mode undecided
-PROGRESS.md has an open question: which mode (A, B, or C) to use for mini-project step 1. This affects how the AI participates when implementation starts.
-
-### 8.4 No application code — yet
-`TREE.md` explicitly states "None yet. The application is still at the planning stage." The spec (`brainstorm-001.md`) is detailed enough that implementation could start immediately. The barrier is the working-mode decision.
-
-### 8.5 Git safety rules from parent repo
-The parent directory (`Gorleben/`) has `.claude/rules/` with:
-- `git-safety.md` — no destructive git commands without permission
-- `go-conventions.md` — Go conventions for a different project ("streb")
-- `security.md` — no sensitive file access, safe exec.Command, path safety
-- `streb-architecture.md` — Provider interface, installer pattern, Cobra/Viper
-
-These don't apply to k8s-doctor (it's Java + TypeScript, not Go), but the git safety rules are inherited.
-
-### 8.6 Platform: WSL2 on Windows
-Running via WSL2 (Linux 6.18.33.2-microsoft-standard-WSL2). Git repo is on the Windows filesystem (`/mnt/c/Users/...`). Docker Desktop runs on Windows, needs WSL2 backend integration for the cluster.
-
-### 8.7 Dual agent support
-The `guideme` skill is duplicated in both `.claude/` (Claude Code) and `.pi/` (Pi agent). The framework is designed to work across agent types — not Claude-only.
-
-### 8.8 Local-only constraint
-Explicit decision: no cloud LLM, no API keys. Everything runs as pods in the local Docker Desktop cluster. Ollama + ChromaDB deployed in-cluster. This is both a feature (privacy, offline) and a constraint (resource limits, no GPT-4 level models).
+1. **Working mode for mini project step 1** — Mode A (independent), B (guided), or C (AI-assisted)? Decision deferred to the developer.
+2. **Document overlap** — `AI_DEV_FRAMEWORK_README.md` overlaps with the README framework section. Keep both or remove one? (Nothing deleted yet — developer decides.)
+3. **Agent adapters** — `CLAUDE.md` and `AGENTS.md` were created because `.claude/` and `.pi/` directories exist. Are they wanted?
 
 ---
 
-## 9. Summary
+## 10. Architectural Assessment
 
-`k8s-doctor` is a **planning-stage learning project** wrapped in an **AI collaboration framework**. The framework (AI.md, GUIDE.md, AI_RULES.md, RULES.md, TREE.md, PROGRESS.md, notes/, patterns/, docs/decisions/) is mature and coherent. The application is empty but has a thorough spec (`brainstorm-001.md`) with a concrete 4-step entry path, CKAD domain mapping, and a clear version roadmap (mini-project → V1 → V2 → V3).
+### 10.1 Strengths
 
-The repo is essentially a **well-architected empty space waiting for code** — the framework is the product right now, the k8s tool is the proving ground.
+- **The AI Development Framework is genuinely novel.** Most projects that use AI agents have no process for learning from AI mistakes or for separating AI behaviour from project quality. This project does both explicitly.
+- **The three-mode working system** (independent/guided/AI-assisted) gives the developer real choice over AI involvement per task.
+- **The `guideme` skill** is well-designed — it produces implementation guides, not code, treating the developer as a senior engineer.
+- **The mini-project roadmap** is concrete and time-boxed. Steps 0-4 can be completed in 30-60 minutes and immediately validate the backend-in-cluster approach.
+- **The bilingual document strategy** is practical — English for AI-agnostic process, German for developer thinking.
+- **The empty-registry discipline** prevents premature over-engineering. No rules are added until they're grounded in real experience.
+
+### 10.2 Risks and Considerations
+
+- **Gradle 9.9.1 + Spring Boot 4.1.2 + Java 25** — all extremely new. There may be compatibility quirks, limited ecosystem support, or rapid version churn. The developer should be aware they're on the cutting edge.
+- **No existing code to anchor rules in** — AI_RULES.md and RULES.md are empty by design, but this means there are zero guardrails for the first AI interaction. The first mistake will define the first rule.
+- **Spec complexity vs. initial scope** — `brainstorm-001.md` describes a very large system (RAG + MCP + Agent Loop + Drill Mode + full CKAD coverage). The mini-project is small, but the gap between "first endpoint works" and "full system" is substantial.
+- **Docker Desktop cluster networking** — running 3 nodes on Docker Desktop via WSL2 can have networking quirks, especially for in-cluster pod-to-pod communication (Ollama, ChromaDB → backend).
+
+### 10.3 Process Quality
+
+The project's process documentation is exceptional for a personal learning project. The framework reflects:
+
+- Understanding of how AI agents fail (inventing APIs, ignoring architecture, editing out-of-scope files)
+- A structured mistake-learning process
+- Clear separation between AI behaviour, developer learning, and project quality
+- Agent independence (no vendor lock-in for the process)
+- Developer-in-the-loop design
+
+This is more process discipline than many enterprise projects have.
+
+---
+
+## 11. Summary
+
+`k8s-doctor` is a **learning project with a process-first mindset**. The application is a planned split architecture (TypeScript CLI → Java Spring Boot backend → K8s API + Ollama + ChromaDB) for diagnosing Kubernetes problems with local AI. Nothing has been built yet.
+
+What *has* been built is a **sophisticated AI Development Framework** that governs how AI agents and the developer collaborate, learn from mistakes, and maintain quality. This framework is technology-agnostic, agent-independent, and designed to be reusable across repositories.
+
+The project is in **Planning** phase. The next step — per the mini-project roadmap — is to create a broken pod, build the `/diagnose` endpoint, deploy it with RBAC, and verify via `port-forward`. The working mode for this step (A, B, or C) is still an open question.
+
+The project's most distinctive feature is not its architecture or its tech stack — it's the **explicit, structured approach to AI collaboration** that sits on top of everything else.

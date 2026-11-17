@@ -20,7 +20,7 @@ None yet. Planned (per `brainstorm-001.md`): Kubernetes manifests, Dockerfile, b
 |---|---|
 | `README.md` | Project README: project TODO list, plus a short framework section. |
 | `brainstorm-001.md` | Project specification and roadmap (German). |
-| `AI_DEV_FRAMEWORK_README.md` | Earlier German quick-start for the framework. Overlaps with the README framework section; see `PROGRESS.md` open questions. |
+| `AI_DEV_FRAMEWORK_README.md` | German quick-start for the framework. Kept alongside README.md (developer decided to keep both). |
 | `research.md` | Earlier research report on the project. |
 
 ## AI framework files
@@ -33,8 +33,8 @@ None yet. Planned (per `brainstorm-001.md`): Kubernetes manifests, Dockerfile, b
 | `RULES.md` | Project quality rules. |
 | `TREE.md` | This file. |
 | `PROGRESS.md` | Verified project state. |
-| `CLAUDE.md` | Thin adapter for Claude Code; points to `AI.md`. |
-| `AGENTS.md` | Thin adapter for agents that read `AGENTS.md`; points to `AI.md`. |
+| `CLAUDE.md` | Thin adapter for Claude Code; points to `AGENTS.md`. |
+| `AGENTS.md` | Hub adapter for all agents; points to `AI.md` and notes the `guideme` skill availability for Claude Code and Pi. |
 | `ai_dev_framework_prompt.md` | Prompt that generated the framework. Reference only. |
 | `notes/` | Developer knowledge notes. `README.md`, `TEMPLATE.md`. |
 | `patterns/` | Pattern practice material. `README.md`, `TEMPLATE.md`. |
@@ -54,7 +54,7 @@ None yet. Planned (per `brainstorm-001.md`): Kubernetes manifests, Dockerfile, b
 
 ## Learning resources
 
-`notes/`, `patterns/` (see above). Both start empty.
+`notes/` — 3 files. `patterns/` — empty.
 
 ## Conventions
 
