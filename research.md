@@ -21,7 +21,7 @@ The project is structured as a **split architecture**: a TypeScript CLI (local) 
 
 ### 2.1 Application Status
 
-**The application itself is still at the planning stage.** The `backend/` directory contains a minimal Spring Boot 4.1.2 skeleton (Java 25, `gradle/wrapper/gradle-wrapper.jar` at Gradle 9.9.1) with:
+**The application itself is still at the planning stage.** The `backend/` directory contains a minimal Spring Boot 4.1.2 skeleton (Java 21, `gradle/wrapper/gradle-wrapper.jar` at Gradle 9.9.1) with:
 
 - A single `@SpringBootApplication` class with a `main` method and nothing else.
 - Empty test class (`contextLoads()` — JUnit 5, Spring Boot Test).
@@ -198,19 +198,25 @@ Three template ecosystems, all technology-agnostic and empty of content:
 - **Patterns** (`patterns/README.md`, `patterns/TEMPLATE.md`): Active pattern practice separate from production code. Fields: Problem solved, Canonical structure, Variations, Language comparison, Trade-offs, Failure cases, When not to use, Used in.
 - **ADR** (`docs/decisions/TEMPLATE.md`): Lightweight Architecture Decision Records. Fields: Context, Decision, Alternatives considered, Consequences. Status: proposed/accepted/superseded.
 
-### 4.5 Existing Notes (3 files)
+### 4.5 Existing Notes (6 files)
 
-Three notes already written — all about **Gradle**, suggesting the developer went through a learning session on Java build tooling:
+**Three original notes** (all about Gradle) — originally written with placeholder text in the What/Why/Example sections:
 
 1. `gradle-files.md` — Gradle folder structure, the three essential files (settings.gradle, build.gradle, gradlew)
 2. `gradle-plugins.md` — How plugins extend Gradle (java, spring-boot, dependency-management), contrast with Maven parent POM
 3. `gradle-toolchain.md` — How toolchain configuration lets Gradle use a different JDK version than the build JDK
 
-All three follow the TEMPLATE.md format (though with placeholder text still in the What/Why/Example sections). Notably:
+**Three rewritten notes** (also about Gradle) — fully filled out in English with real examples, gotchas, and Used-in references:
 
-- The notes were written in **German** by the developer — the only content in the repo written in German outside the project spec.
-- They contain actual implementation references (e.g., `backend/build.gradle`).
-- The "Gotchas" section is empty in all three, showing the template is being actively used and may get filled as learning deepens.
+4. `gradle-jar-vs-bootjar.md` — Standard JAR vs Spring Boot fat JAR, manifest differences, deployability
+5. `gradle-tasks.md` — Tasks as atomic work units, task DAGs, lazy execution, UP-TO-DATE tracking
+6. `gradle-configuration-cache.md` — Configuration Cache for faster repeated builds, invalidation rules, caveats
+
+All six follow the TEMPLATE.md format. Notably:
+
+- The original three were written in **German**; the rewritten three are in **English**.
+- All notes contain actual implementation references (e.g., `backend/build.gradle`).
+- The "Gotchas" sections in the rewritten notes are fully populated — a sign the developer engaged deeply with the concepts.
 
 ---
 
@@ -220,7 +226,7 @@ All three follow the TEMPLATE.md format (though with placeholder text still in t
 
 - **Gradle 9.9.1** (via wrapper — `gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`)
 - Spring Boot 4.1.2 (very new — this is a cutting-edge version)
-- Java 25 toolchain (latest Java — also cutting-edge)
+- **Java 21** toolchain (changed from Java 25 — no JDK 25 available on the build machine; JDK 21 is sufficient for Spring Boot with Fabric8)
 - Group: `com.example`, project name: `k8sdoctor`, version: `0.0.1-SNAPSHOT`
 - `settings.gradle`: simple single-project definition
 
@@ -330,7 +336,7 @@ k8s-doctor/
 │   ├── .gitignore
 │   ├── .gradle/                      # Gradle cache (build artifacts)
 │   ├── HELP.md
-│   ├── build.gradle                  # Spring Boot 4.1.2, Java 25, Gradle 9.9.1
+│   ├── build.gradle                  # Spring Boot 4.1.2, Java 21, Gradle 9.9.1
 │   ├── gradlew / gradlew.bat         # Gradle wrapper
 │   ├── gradle/wrapper/
 │   │   ├── gradle-wrapper.jar
@@ -455,7 +461,7 @@ Three open questions are explicitly tracked:
 
 ### 10.2 Risks and Considerations
 
-- **Gradle 9.9.1 + Spring Boot 4.1.2 + Java 25** — all extremely new. There may be compatibility quirks, limited ecosystem support, or rapid version churn. The developer should be aware they're on the cutting edge.
+- **Gradle 9.9.1 + Spring Boot 4.1.2 + Java 21** — all extremely new (Java version downgraded from 25 to 21 after JDK 25 was unavailable on the build machine). There may be compatibility quirks or limited ecosystem support for Spring Boot 4.1.2 and Gradle 9.9.1.
 - **No existing code to anchor rules in** — AI_RULES.md and RULES.md are empty by design, but this means there are zero guardrails for the first AI interaction. The first mistake will define the first rule.
 - **Spec complexity vs. initial scope** — `brainstorm-001.md` describes a very large system (RAG + MCP + Agent Loop + Drill Mode + full CKAD coverage). The mini-project is small, but the gap between "first endpoint works" and "full system" is substantial.
 - **Docker Desktop cluster networking** — running 3 nodes on Docker Desktop via WSL2 can have networking quirks, especially for in-cluster pod-to-pod communication (Ollama, ChromaDB → backend).

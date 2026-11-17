@@ -9,7 +9,7 @@
 CKAD-Vorbereitung durch Bauen statt Auswendiglernen. Jedes Feature zwingt dich, ein CKAD-Thema anzufassen. Nebenbei: Java wieder reinkommen, moderne AI-Architektur (RAG, MCP, eigener Agent-Loop) — Themen, die in Stellenausschreibungen gerade oft gefordert sind.
 
 ## Tech-Stack
-- **Java 25 + Spring Boot (Backend, im Cluster)**: Diagnose-Engine, Agent-Loop, KI-Client, MCP-Server. Hauptarbeit (~60%).
+- **Java 21 + Spring Boot (Backend, im Cluster)**: Diagnose-Engine, Agent-Loop, KI-Client, MCP-Server. Hauptarbeit (~60%). (Originally planned for Java 25; downgraded to 21 after no JDK 25 was available on the build machine.)
 - **Fabric8 Kubernetes Client (Java)**: K8s-API aus Java ansprechen (Pods, Events, Logs, Patches). Etablierter Java-Client, gute Doku.
 - **Spring AI**: ChatClient → Ollama, VectorStore für RAG, `@Tool`-Annotationen, MCP-Server-Starter.
 - **TypeScript (CLI, lokal)**: Terminal-Frontend. Strikt TypeScript (`strict: true`), kein handgeschriebenes JavaScript. Ausführen mit `tsx` oder kompiliert. Libs nur mit Typen (z.B. `commander` hat eingebaute Typen).

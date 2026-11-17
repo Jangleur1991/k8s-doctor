@@ -13,6 +13,9 @@ Only verified progress is recorded here. Planned work is not marked as done. Fra
 - `guideme` skill present for Claude Code and Pi (`.claude/skills/guideme/`, `.pi/agent/skills/guideme/`).
 - Earlier research report written: `research.md`.
 - AI development framework initialised (this change): `AI.md`, `GUIDE.md`, `AI_RULES.md`, `RULES.md`, `TREE.md`, `PROGRESS.md`, `notes/`, `patterns/`, `docs/decisions/`, `.scratch/`, `CLAUDE.md`, `AGENTS.md`, `.gitignore`.
+- Mini project step 0: broken pod (`ImagePullBackOff`) created in namespace `playground`.
+- Backend build validated: `./gradlew build` succeeds (Java 21, Spring Boot 4.1.2, Gradle 9.9.1).
+- New learning notes written: `gradle-jar-vs-bootjar.md`, `gradle-tasks.md`, `gradle-configuration-cache.md`.
 
 ## Current task
 
@@ -20,9 +23,8 @@ None in the application. Framework consolidation complete (CLAUDE.md → AGENTS.
 
 ## Next steps
 
-From `brainstorm-001.md`, mini project steps 0–4:
+From `brainstorm-001.md`, mini project steps 1–4 (step 0 done):
 
-0. Create broken pod in namespace `playground` (`ImagePullBackOff`).
 1. Spring Boot project with `GET /diagnose/{namespace}` (Fabric8).
 2. `@Scheduled` watcher with deduplicated logging.
 3. Kubernetes manifests: namespace, RBAC, deployment, service.

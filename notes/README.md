@@ -22,6 +22,9 @@ Flat files, named by concept: `<domain>-<concept>.md`, e.g. `kubernetes-probes.m
 - `gradle-files.md` — Gradle file structure and comparison to Maven
 - `gradle-toolchain.md` — JDK toolchain configuration and why two JDKs exist
 - `gradle-plugins.md` — Gradle plugins replacing Maven's parent POM
+- `gradle-jar-vs-bootjar.md` — Difference between standard JAR and Spring Boot fat JAR
+- `gradle-tasks.md` — Tasks as atomic work units, task DAGs, and task chaining
+- `gradle-configuration-cache.md` — Configuration Cache for faster repeated builds
 
 ## Template
 

@@ -54,7 +54,7 @@ None yet. Planned (per `brainstorm-001.md`): Kubernetes manifests, Dockerfile, b
 
 ## Learning resources
 
-`notes/` — 3 files. `patterns/` — empty.
+`notes/` — 6 files. `patterns/` — empty.
 
 ## Conventions
 
